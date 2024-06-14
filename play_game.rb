@@ -2,4 +2,4 @@
 
 require_relative 'lib/connect_four'
 
-ConnectFour.new_game
+p ConnectFour.new_game
