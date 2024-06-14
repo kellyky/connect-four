@@ -42,7 +42,7 @@ RSpec.describe ConnectFour do
 
     # FIXME - maybe! I havne't written the code for this yet
     context 'when there are 4 in a row - diagonally' do
-      xit 'should be true' do
+      it 'should be true' do
         allow(game).to receive(:horizontal?).and_return(false)
         allow(game).to receive(:vertical?).and_return(false)
         allow(game).to receive(:diagonal?).and_return(true)
@@ -52,10 +52,10 @@ RSpec.describe ConnectFour do
 
     describe '#vertical?' do
       let(:board) do
-          {
-            2 => [{ :red => 4 }],
-            3 => [{ :blue => 3 }]
-          }
+        {
+          2 => %i[red red red red],
+          3 => %i[blue blue blue]
+        }
       end
 
       before { game.instance_variable_set(:@board, board) }
@@ -76,16 +76,16 @@ RSpec.describe ConnectFour do
       before { game.instance_variable_set(:@board, board) }
       context 'when there ARE 4' do
         let(:board) do
-            { # TODO: update this - for true case, and create a false case
-              0 => [{ :red => 2 }, { :blue => 1 }],
-              1 => [{ :blue => 4 }, { :blue => 2 }],
-              2 => [{ :red => 4 }, { :blue => 2 }],
-              3 => [{ :red => 1 }, { :blue => 2 }],
-            }
+          {
+            0 => %i[red blue red],
+            1 => %i[red],
+            2 => %i[red],
+            3 => %i[red blue]
+          }
         end
 
         it 'should be true' do
-          expect(game.horizontal?).to be(true)
+          expect(game.horizontal?(0)).to be(true)
         end
       end
     end
@@ -93,12 +93,13 @@ RSpec.describe ConnectFour do
     context 'when there are NOT 4 in a row' do
       before { game.instance_variable_set(:@board, board) }
       let(:board) do
-            {
-              0 => [{ :red => 1 }, { :red => 2 }],
-              1 => [{ :blue => 1 }, { :blue => 2 }],
-              2 => [{ :red => 2 }, { :blue => 2 }],
-              5 => [{ :red => 1 }, { :blue => 2 }],
-            }
+        {
+          0 => %i[red blue red],
+          1 => %i[blue],
+          2 => %i[red],
+          4 => [],
+          5 => %i[red blue]
+        }
       end
       it 'should be false' do
         expect(game.horizontal?(0)).to be(false)
@@ -106,23 +107,182 @@ RSpec.describe ConnectFour do
     end
   end
 
-  # TODO - write test coverage and functionality
   describe '#diagonal?' do
-    context 'when there are 4 in a row - diagonally' do
-      before { game.instance_variable_set(:@board, board) }
+
+
+  end
+
+  describe '#lower_left_to_upper_right_vertical?' do
+    before do
+      game.instance_variable_set(:@board, board)
+      game.instance_variable_set(:@token_color, :red)
+    end
+
+    context 'when there are 4 consecutive tokens for current player' do
       let(:board) do
-          {
-            0 => [{ :red => 1 }, { :blue => 2 }],
-            1 => [{ :blue => 1 }, { :red => 2 }, { :red => 1 }, { :blue => 2 }],
-            2 => [{ :red => 1 }, { :blue => 1 }, { :red => 1 }, { :blue => 2 }],
-            3 => [{ :blue => 1 }, { :red => 3 }],
-          }
+        {
+          0 => ['', '', ''],
+          1 => ['', :red, '', ''],
+          2 => ['', '', :red, '', ''],
+          3 => ['', '', '', :red],
+          4 => ['', '', '', '', :red],
+          5 => [],
+          6 => []
+        }
       end
-      xit 'should be true' do
-        expect(game.game_won?).to eq(true)
+
+      it 'should be false' do
+        expect(game.lower_left_to_upper_right_vertical?).to be(true)
       end
     end
 
+    context 'when there are NOT 4 consecutive tokens' do
+      let(:board) do
+        {
+          0 => ['', '', ''],
+          1 => ['', :red, '', ''],
+          2 => ['', '', :red, '', ''],
+          3 => ['', '', '', :red],
+          4 => ['', '', '', '', :blue],
+          5 => [],
+          6 => []
+        }
+      end
+
+      it 'should be false' do
+        expect(game.lower_left_to_upper_right_vertical?).to be(false)
+      end
+    end
+  end
+
+  describe '#lower_left_to_upper_right_horizontal?' do
+    before do
+      game.instance_variable_set(:@board, board)
+      game.instance_variable_set(:@token_color, :red)
+    end
+
+    context 'when there are 4 consecutive tokens for current player' do
+      let(:board) do
+        {
+          0 => ['', '', ''],
+          1 => [:red, '', ''],
+          2 => ['', :red, ''],
+          3 => ['', '', :red],
+          4 => ['', '', '', :red],
+          5 => [],
+          6 => []
+        }
+      end
+
+      it 'should be true' do
+        expect(game.lower_left_to_upper_right_horizontal?).to be(true)
+      end
+    end
+
+    context 'when there are NOT 4 consecutive tokens' do
+      let(:board) do
+        {
+          0 => ['', '', ''],
+          1 => [:red, '', ''],
+          2 => ['', :red, ''],
+          3 => ['', '', :red],
+          4 => ['', '', '', :blue],
+          5 => [],
+          6 => []
+        }
+      end
+
+      it 'should be false' do
+        expect(game.lower_left_to_upper_right_horizontal?).to be(false)
+      end
+    end
+  end
+
+  describe '#upper_left_to_lower_right_horizontal?' do
+    before do
+      game.instance_variable_set(:@board, board)
+      game.instance_variable_set(:@token_color, :red)
+    end
+
+    context 'when there are 4 consecutive tokens for current player' do
+      let(:board) do
+        {
+          0 => ['', '', '', ''],
+          1 => ['', '', '', '', '', :red],
+          2 => ['', '', '', '', :red],
+          3 => ['', '', '', :red],
+          4 => ['', '', :red, ''],
+          5 => [],
+          6 => []
+        }
+      end
+
+      it 'should be false' do
+        expect(game.upper_left_to_lower_right_horizontal?).to be(true)
+      end
+    end
+
+    context 'when there are NOT 4 consecutive tokens' do
+      let(:board) do
+        {
+          0 => ['', '', '', ''],
+          1 => ['', '', '', '', '', :red],
+          2 => ['', '', '', '', :red],
+          3 => ['', '', '', :red],
+          4 => [],
+          5 => [],
+          6 => []
+        }
+      end
+
+      it 'should be false' do
+        expect(game.upper_left_to_lower_right_horizontal?).to be(false)
+      end
+    end
+  end
+
+  describe '#upper_left_to_lower_right_vertical?' do
+    before do
+      game.instance_variable_set(:@board, board)
+      game.instance_variable_set(:@token_color, :red)
+    end
+
+    context 'when there are 4 consecutive tokens for current player' do
+      let(:board) do
+        {
+          0 => ['', '', '', :red],
+          1 => ['', '', :red, ''],
+          2 => ['', :red, '', '', ''],
+          3 => [:red, '', ''],
+          4 => [],
+          5 => [],
+          6 => []
+        }
+      end
+
+      it 'should be false' do
+        expect(game.upper_left_to_lower_right_vertical?).to be(true)
+      end
+    end
+
+    context 'when there are NOT 4 consecutive tokens' do
+      let(:board) do
+        # board has 3 consec red tokens
+        {
+          0 => ['', '', '', :red],
+          1 => ['', '', :red, ''],
+          2 => ['', :red, '', '', ''],
+          3 => [:blue, '', ''],
+          4 => [],
+          5 => [],
+          6 => []
+        }
+      end
+
+      it 'should be false' do
+        expect(game.upper_left_to_lower_right_vertical?).to be(false)
+      end
+    end
   end
 
   describe '#player_turn' do
@@ -161,27 +321,27 @@ RSpec.describe ConnectFour do
     context 'when column was previously EMPTY' do
       it 'pushes a new hash with that color with value of 1' do
         board_column = game.instance_variable_get(:@board)[column.to_i]
-        expect { game.place_token(column) }.to change { board_column }.from([]).to([{:red=>1}] )
+        expect { game.place_token(column) }.to change { board_column.length }.from(0).to( 1 )
       end
     end
 
     context 'when previous token was a DIFFERENT color' do
       it 'pushes a new hash with that color with value of 1' do
         token_color = game.instance_variable_set(:@token_color, :blue)
-        board = game.instance_variable_set(:@board, { 3=>[{:red=>1}] })
+        board = game.instance_variable_set(:@board, { 3=> [:red] })
 
         board_column = game.instance_variable_get(:@board)[column.to_i]
-        expect { game.place_token(column) }.to change { board_column }.from([{ red: 1 }]).to([{:red=>1}, {:blue=>1}])
+        expect { game.place_token(column) }.to change { board_column }.from([:red]).to([:red, :blue])
       end
     end
 
     context 'when previous token was the SAME color' do
       it 'INCREMENTS the existing count in that column for that color' do
         token_color = game.instance_variable_set(:@token_color, :red)
-        board = game.instance_variable_set(:@board, { 3=>[{:red=>1}] })
+        board = game.instance_variable_set(:@board, { 3=> [:red] })
 
         board_column = game.instance_variable_get(:@board)[column.to_i]
-        expect { game.place_token(column) }.to change { board_column }.from([{ red: 1 }]).to([{:red=>2}])
+        expect { game.place_token(column) }.to change { board_column }.from([:red]).to([:red, :red])
       end
     end
   end

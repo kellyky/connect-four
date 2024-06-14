@@ -20,87 +20,193 @@ class ConnectFour
     # TODO: Add call to welcome/greeting/rules
 
     # TODO: Add logic to loop until there is a winner or... other cases?
-    # player_turn
+    player_turn
     game_won? ? "Wooo, #{@winner} wins the game!!!" : "Meh"   # temp - TODO: update later
+  end
+
+  def create_grid
+    grid = {}
+    (0...7).each { |i| grid[i] = [] }
+    grid
+  end
+
+  def player_choice
+    gets.chomp
+  end
+
+
+  def player_turn
+    puts "Place your token - tell me the column number." \
+      " Columns start at '0' on the left and go up to '6'" \
+      " on the right.\n"
+
+    column = player_choice
+
+    place_token(column)
+
+    # TODO prettier print this
+    puts @board
+
+    # At the end of the turn, it changes player
+    @token_color = @token_color == :red ? :blue : :red
+  end
+
+  def place_token(column)
+    @board[column.to_i] << @token_color
   end
 
   def game_won?
     (0..6).each do |i|
-      # binding.pry
+      row = @board.values.map { |tokens| tokens[i] }
+      column = @board[i]
 
-      # HORIZONTAL
-      return true if horizontal?(i)
-
-      # VERTICLE
-      return true if vertical?(i)
-
-      # # DIAGONAL
-      # return true if diagonal?(i)
+      return true if four_in_segment?(i, row) || four_in_segment?(i, column)
     end
 
-    false
+    diagonal?
   end
 
   def horizontal?(i)
     row = @board.values.map { |colors| colors[i] }
-
-    return false if row.count(nil) >= 4
-
-    reds = []
-    blues = []
-
-    row.each.with_index do |color, i|
-      reds << i if color == :red
-      blues << i if color == :blue
-    end.compact
-
-    return true if token_count(reds, :red) >= 4
-
-    return true if token_count(blues, :blue) >= 4
-
-    false
+    four_in_segment?(i, row)
   end
 
   def vertical?(i)
     col = @board[i]
-
-    return false if col.count(nil) >= 3
-
-    reds = []
-    blues = []
-
-    col.each.with_index do |token, i|
-      reds << i if token == :red
-      blues << i if token == :blue
-    end.compact
-
-    return true if token_count(reds, :red) >= 4
-
-    return true if token_count(blues, :blue) >= 4
-
-    false
+    four_in_segment?(i, @board[i])
   end
 
-  def token_count(chonk, color)
-    consecutives = 1
-    last_consecutive_token_place = chonk.first
+  def four_in_segment?(i, segment)
+    return false if segment.count(nil) >= 3
 
-    chonk.each do |token_place|
-      next if token_place == chonk.first
+    colors = { red: [], blue: [] }
+
+    segment.each.with_index do |token, i|
+      colors[token] << i if token == @token_color
+    end.compact
+
+    token_count(colors[@token_color]) == 4
+  end
+
+  def token_count(indexes)
+    consecutive_tokens = 1
+    last_consecutive_token_place = indexes.first
+
+    indexes.each do |token_place|
+      next if token_place == indexes.first
 
       if token_place - last_consecutive_token_place == 1
-        consecutives += 1
+        consecutive_tokens += 1
         last_consecutive_token_place += 1
       end
     end
 
-    @winner = color if consecutives >= 4
-
-    consecutives
+    consecutive_tokens
   end
 
-  def diagonal?(i)
+  def diagonal?
+    lower_left_to_upper_right_vertical? ||
+    upper_left_to_lower_right_vertical? ||
+    upper_left_to_lower_right_horizontal? ||
+    lower_left_to_upper_right_horizontal?
+  end
 
+   # LL to UR - Starting coords (0,2) (0,1) (0,0)
+  def lower_left_to_upper_right_vertical?
+    consecutives = 0
+    x, y = [0, 2]
+
+    row_reducer = 2
+    while row_reducer >= 0
+      while (y - row_reducer) < 5 || x < 6
+        break if @board[x][y - row_reducer].nil?
+
+        consecutives += 1 if @board[x][y - row_reducer] == @token_color
+        return true if consecutives == 4
+
+        x += 1
+        y += 1
+      end
+      x, y = [0, 2]
+      consecutives = 0
+      row_reducer -= 1
+    end
+
+    false
+  end
+
+  # LL to UR - Starting coords (1,0) (2,0) (3,0)
+  def lower_left_to_upper_right_horizontal?
+    consecutives = 0
+    x, y = [1, 0]
+
+    col_booster = 0
+    while col_booster < 3
+      while (x + col_booster) < 7 && y < 6
+        break if @board[x + col_booster][y].nil?
+
+        consecutives += 1 if @board[x + col_booster][y] == @token_color
+        return true if consecutives == 4
+
+        x += 1
+        y += 1
+      end
+
+      x, y = [1, 0]
+      consecutives = 0
+      col_booster += 1
+    end
+
+    false
+  end
+
+  # UL to LR - Starting coords (1,5) (2,5) (3,5)
+  def upper_left_to_lower_right_horizontal?
+    consecutives = 0
+    x, y = [1, 5]
+
+    col_booster = 0
+    while col_booster < 3
+      while (x + col_booster) <= 6 && y >= 0
+        break if @board[x + col_booster][y].nil?
+
+        consecutives += 1 if @board[x + col_booster][y] == @token_color
+        return true if consecutives == 4
+
+        x += 1
+        y -= 1
+      end
+      x, y = [1, 5]
+      consecutives = 0
+      col_booster += 1
+    end
+
+    false
+  end
+
+  # UL to LR - Starting coords (0,3) (0,4) (0,5)
+  def upper_left_to_lower_right_vertical?
+    consecutives = 0
+    x, y = [0, 3]
+
+    row_booster = 0
+    while row_booster < 3
+      while (x < 4) || (y + row_booster) >= 0
+        break if @board[x][y + row_booster].nil?
+
+        consecutives += 1 if @board[x][y + row_booster] == @token_color
+        return true if consecutives == 4
+
+        x += 1
+        y -= 1
+      end
+
+      x, y = [0, 3]
+      consecutives = 0
+      row_booster += 1
+    end
+
+    false
   end
 
   def player_choice
