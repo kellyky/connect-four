@@ -25,7 +25,7 @@ RSpec.describe ConnectFour do
 
   describe '#game_won?' do
     context 'when there are 4 in a row - horizontally' do
-      before { allow(game).to receive(:horizontal?).and_return(true) }
+      before { allow(game).to receive(:four_in_segment?).and_return(true) }
 
       it 'should be true' do
         expect(game.game_won?).to eq(true)
@@ -34,8 +34,8 @@ RSpec.describe ConnectFour do
 
     context 'when there are 4 in a row - vertically' do
       it 'should be true' do
-        allow(game).to receive(:horizontal?).and_return(false)
-        allow(game).to receive(:vertical?).and_return(true)
+        allow(game).to receive(:four_in_segment?).and_return(false)
+        allow(game).to receive(:four_in_segment?).and_return(true)
         expect(game.game_won?).to eq(true)
       end
     end
@@ -47,62 +47,6 @@ RSpec.describe ConnectFour do
         allow(game).to receive(:vertical?).and_return(false)
         allow(game).to receive(:diagonal?).and_return(true)
         expect(game.game_won?).to eq(true)
-      end
-    end
-
-    describe '#vertical?' do
-      let(:board) do
-        {
-          2 => %i[red red red red],
-          3 => %i[blue blue blue]
-        }
-      end
-
-      before { game.instance_variable_set(:@board, board) }
-      context 'when there are indeed 4' do
-        it 'should be true' do
-          expect(game.vertical?(2)).to eq(true)
-        end
-      end
-
-      context 'when there are LESS than 4' do
-        it 'should be false' do
-          expect(game.vertical?(3)).to eq(false)
-        end
-      end
-    end
-
-    describe '#horizontal?' do
-      before { game.instance_variable_set(:@board, board) }
-      context 'when there ARE 4' do
-        let(:board) do
-          {
-            0 => %i[red blue red],
-            1 => %i[red],
-            2 => %i[red],
-            3 => %i[red blue]
-          }
-        end
-
-        it 'should be true' do
-          expect(game.horizontal?(0)).to be(true)
-        end
-      end
-    end
-
-    context 'when there are NOT 4 in a row' do
-      before { game.instance_variable_set(:@board, board) }
-      let(:board) do
-        {
-          0 => %i[red blue red],
-          1 => %i[blue],
-          2 => %i[red],
-          4 => [],
-          5 => %i[red blue]
-        }
-      end
-      it 'should be false' do
-        expect(game.horizontal?(0)).to be(false)
       end
     end
   end

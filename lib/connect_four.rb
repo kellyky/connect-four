@@ -66,16 +66,6 @@ class ConnectFour
     diagonal?
   end
 
-  def horizontal?(i)
-    row = @board.values.map { |colors| colors[i] }
-    four_in_segment?(i, row)
-  end
-
-  def vertical?(i)
-    col = @board[i]
-    four_in_segment?(i, @board[i])
-  end
-
   def four_in_segment?(i, segment)
     return false if segment.count(nil) >= 3
 
@@ -209,33 +199,4 @@ class ConnectFour
     false
   end
 
-  def player_choice
-    gets.chomp
-  end
-
-  def player_turn
-    puts "Place your token - tell me the column number." \
-      " Columns start at '0' on the left and go up to '6'" \
-      " on the right.\n"
-
-    column = player_choice
-
-    place_token(column)
-
-    # TODO prettier print this
-    puts @board
-
-    # At the end of the turn, it changes player
-    @token_color = @token_color == :red ? :blue : :red
-  end
-
-  def place_token(column)
-    @board[column.to_i] << @token_color
-  end
-
-  def create_grid
-    grid = {}
-    (0...7).each { |i| grid[i] = [] }
-    grid
-  end
 end
