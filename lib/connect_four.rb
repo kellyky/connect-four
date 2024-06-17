@@ -13,30 +13,27 @@ class ConnectFour
   def initialize
     @board = create_grid
     @token_color = :red
-    @winner = nil
+    # @winner = nil
   end
 
   def play
     # TODO: Add call to welcome/greeting/rules
 
-    # TODO: Add logic to loop until there is a winner or... other cases?
+    # TODO: Add logic to loop until there is a winner or board is full
     player_turn
-    game_won? ? "Wooo, #{@winner} wins the game!!!" : "Meh"   # temp - TODO: update later
+    game_won? ? "Wooo, #{@winner} wins the game!!!" : 'Meh' # temp - TODO: update later
   end
 
   def create_grid
-    grid = {}
-    (0...7).each { |i| grid[i] = [] }
-    grid
+    (0...7).each_with_object({}) { |i, grid| grid[i] = [] }
   end
 
   def player_choice
     gets.chomp
   end
 
-
   def player_turn
-    puts "Place your token - tell me the column number." \
+    puts 'Place your token - tell me the column number.' \
       " Columns start at '0' on the left and go up to '6'" \
       " on the right.\n"
 
@@ -44,7 +41,7 @@ class ConnectFour
 
     place_token(column)
 
-    # TODO prettier print this
+    # TODO: prettier print this
     puts @board
 
     # At the end of the turn, it changes player
@@ -60,13 +57,13 @@ class ConnectFour
       row = @board.values.map { |tokens| tokens[i] }
       column = @board[i]
 
-      return true if four_in_segment?(i, row) || four_in_segment?(i, column)
+      return true if four_in_segment?(row) || four_in_segment?(column)
     end
 
     diagonal?
   end
 
-  def four_in_segment?(i, segment)
+  def four_in_segment?(segment)
     return false if segment.count(nil) >= 3
 
     colors = { red: [], blue: [] }
@@ -96,15 +93,16 @@ class ConnectFour
 
   def diagonal?
     lower_left_to_upper_right_vertical? ||
-    upper_left_to_lower_right_vertical? ||
-    upper_left_to_lower_right_horizontal? ||
-    lower_left_to_upper_right_horizontal?
+      upper_left_to_lower_right_vertical? ||
+      upper_left_to_lower_right_horizontal? ||
+      lower_left_to_upper_right_horizontal?
   end
 
-   # LL to UR - Starting coords (0,2) (0,1) (0,0)
+  # LL to UR - Starting coords (0,2) (0,1) (0,0)
   def lower_left_to_upper_right_vertical?
     consecutives = 0
-    x, y = [0, 2]
+    x = 0
+    y = 2
 
     row_reducer = 2
     while row_reducer >= 0
@@ -117,7 +115,8 @@ class ConnectFour
         x += 1
         y += 1
       end
-      x, y = [0, 2]
+      x = 0
+      y = 2
       consecutives = 0
       row_reducer -= 1
     end
@@ -128,7 +127,8 @@ class ConnectFour
   # LL to UR - Starting coords (1,0) (2,0) (3,0)
   def lower_left_to_upper_right_horizontal?
     consecutives = 0
-    x, y = [1, 0]
+    x = 1
+    y = 0
 
     col_booster = 0
     while col_booster < 3
@@ -142,7 +142,8 @@ class ConnectFour
         y += 1
       end
 
-      x, y = [1, 0]
+      x = 1
+      y = 0
       consecutives = 0
       col_booster += 1
     end
@@ -153,7 +154,8 @@ class ConnectFour
   # UL to LR - Starting coords (1,5) (2,5) (3,5)
   def upper_left_to_lower_right_horizontal?
     consecutives = 0
-    x, y = [1, 5]
+    x = 1
+    y = 5
 
     col_booster = 0
     while col_booster < 3
@@ -166,7 +168,8 @@ class ConnectFour
         x += 1
         y -= 1
       end
-      x, y = [1, 5]
+      x = 1
+      y = 5
       consecutives = 0
       col_booster += 1
     end
@@ -177,7 +180,8 @@ class ConnectFour
   # UL to LR - Starting coords (0,3) (0,4) (0,5)
   def upper_left_to_lower_right_vertical?
     consecutives = 0
-    x, y = [0, 3]
+    x = 0
+    y = 3
 
     row_booster = 0
     while row_booster < 3
@@ -191,12 +195,12 @@ class ConnectFour
         y -= 1
       end
 
-      x, y = [0, 3]
+      x = 0
+      y = 3
       consecutives = 0
       row_booster += 1
     end
 
     false
   end
-
 end
