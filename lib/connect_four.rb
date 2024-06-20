@@ -13,15 +13,19 @@ class ConnectFour
   def initialize
     @board = create_grid
     @token_color = :red
-    # @winner = nil
+    @winner = nil
   end
 
   def play
     # TODO: Add call to welcome/greeting/rules
 
-    # TODO: Add logic to loop until there is a winner or board is full
-    player_turn
-    game_won? ? "Wooo, #{@winner} wins the game!!!" : 'Meh' # temp - TODO: update later
+    loop do
+      break if !@winner.nil? || board_full?
+      player_turn
+    end
+
+    @winner.nil? ? "board full - it's a draw" : "Wooo, #{@winner} wins!"
+    # TODO: define behavior when the game is over
   end
 
   def create_grid
@@ -41,8 +45,9 @@ class ConnectFour
 
     place_token(column)
 
-    # TODO: prettier print this
-    puts @board
+    display_board
+
+    @winner = @token_color if game_won?
 
     # At the end of the turn, it changes player
     @token_color = @token_color == :red ? :blue : :red
@@ -50,6 +55,10 @@ class ConnectFour
 
   def place_token(column)
     @board[column.to_i] << @token_color
+  end
+
+  def board_full?
+    @board.values.all? { |rows| rows.count == 6 }
   end
 
   def game_won?

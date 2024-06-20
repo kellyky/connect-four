@@ -16,14 +16,43 @@ RSpec.describe ConnectFour do
   end
 
   describe '#play' do
-    it 'should call player_turn' do
-      allow(game).to receive(:game_won?).and_return(false)
-      expect(game).to receive(:player_turn)
-      game.play
+    context 'when there is a winner' do
+      before { game.instance_variable_set(:@winner, :red) }
+
+      it 'should not call player_turn' do
+        expect(game).not_to receive(:player_turn)
+        game.play
+      end
+    end
+
+    context 'when the board is full' do
+      it 'should not call player_turn' do
+        allow(game).to receive(:board_full?).and_return(true)
+        expect(game).not_to receive(:player_turn)
+        game.play
+      end
+    end
+
+    context 'when there is no winner - but the board is not yet full' do
+      it 'should call player_turn' do
+        allow(game).to receive(:board_full?).and_return(false)
+
+        counter = 0
+        loop_limit = 3
+
+        allow(game).to receive(:player_turn) do
+          counter += 1
+          allow(game).to receive(:board_full?).and_return(true) if counter == loop_limit
+        end
+
+        game.play
+        expect(counter).to eq(loop_limit)
+      end
     end
   end
 
   describe '#player_turn' do
+    before { allow(game).to receive(:player_choice).and_return("1") }
     # FIXME
     xit 'should prompt the first player to place a token' do
       message = 'Place your token - tell me the column number.' \
@@ -31,6 +60,7 @@ RSpec.describe ConnectFour do
         " the right.\n"
 
       expect { game.play }.to output(message).to_stdout
+      game.player_turn
     end
 
     it 'should call player_choice' do
@@ -90,6 +120,44 @@ RSpec.describe ConnectFour do
 
         board_column = game.instance_variable_get(:@board)[column.to_i]
         expect { game.place_token(column) }.to change { board_column }.from([:red]).to(%i[red red])
+      end
+    end
+  end
+
+  describe '#board_full?' do
+    before { game.instance_variable_set(:@board, board) }
+    context 'when all columns are full' do
+      let(:board) do
+        {
+          0 => %i[red blue red blue red red],
+          1 => %i[red blue red blue red red],
+          2 => %i[red blue red blue red red],
+          3 => %i[blue red blue red blue blue],
+          4 => %i[blue red blue red blue blue],
+          5 => %i[blue red blue red blue blue],
+          6 => %i[blue red blue red blue blue]
+        }
+      end
+
+      it 'should return true' do
+        expect(game.board_full?).to be(true)
+      end
+    end
+
+    context 'when columns are not full' do
+      let(:board) do
+        {
+          0 => [],
+          1 => [:red],
+          2 => [],
+          3 => [:red],
+          4 => [:blue],
+          5 => [],
+          6 => []
+        }
+      end
+      it 'should return false' do
+        expect(game.board_full?).to be(false)
       end
     end
   end
